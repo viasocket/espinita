@@ -34,7 +34,7 @@ module Espinita
           self.excluded_cols = (@@default_excluded) + options[:except]
         end
 
-        has_many :audits, :as => :auditable, :class_name => Espinita::Audit.name
+        has_many :audits, :as => :auditable, :class_name => "Espinita::Audit"
         #attr_accessor :audited_user, :audited_ip
         accepts_nested_attributes_for :audits
 
@@ -135,11 +135,18 @@ module Espinita
       Hash[ audited_attributes.map{|o| [o.to_sym, self.changes[o.to_sym] ] } ]
     end
 
+    def audited_create_attributes
+      self.saved_changes.keys & self.class.permitted_columns
+    end
+
+    def audited_create_hash
+      Hash[ audited_create_attributes.map{|o| [o.to_sym, self.saved_changes[o.to_sym] ] } ]
+    end
 
     def audit_create
       #puts self.class.audit_callbacks
       write_audit(:action => 'create',
-                  :audited_changes => audited_hash,
+                  :audited_changes => audited_create_hash,
                   :comment => audit_comment)
     end
 
